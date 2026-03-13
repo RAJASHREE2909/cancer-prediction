@@ -1,0 +1,49 @@
+if(!require(mlbench)) install.packages("mlbench")
+if(!require(randomForest)) install.packages("randomForest")
+if(!require(caret)) install.packages("caret")
+
+library(mlbench)
+library(randomForest)
+library(caret)
+
+data(BreastCancer)
+
+dataset <- BreastCancer
+
+dataset$Id <- NULL
+
+dataset <- na.omit(dataset)
+
+dataset[,1:9] <- lapply(dataset[,1:9], function(x)
+as.numeric(as.character(x)))
+
+set.seed(50)
+
+index <- createDataPartition(dataset$Class,
+p = 0.7,
+list = FALSE)
+
+training_data <- dataset[index, ]
+testing_data  <- dataset[-index, ]
+
+model_rf <- randomForest(Class ~ .,
+data = training_data,
+ntree = 150,
+importance = TRUE)
+
+print(model_rf)
+
+rf_predictions <- predict(model_rf, testing_data)
+
+results <- confusionMatrix(rf_predictions,
+testing_data$Class)
+
+print(results)
+
+acc <- results$overall["Accuracy"]
+
+print(acc)
+
+varImpPlot(model_rf)
+
+cat("Cancer Prediction Completed Successfully\n")
